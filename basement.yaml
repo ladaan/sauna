@@ -1,0 +1,78 @@
+esphome:
+  name: sauna
+
+esp32:
+  board: nodemcu-32s
+  framework:
+    type: arduino
+
+# Enable logging
+logger:
+#  level: VERY_VERBOSE
+# external_components:
+#  - source: github://esphome/esphome@i2c-data-logging
+#    components: [i2c]
+
+# Enable Home Assistant API
+api:
+  password: ""
+
+ota:
+  password: ""
+
+wifi:
+  ssid: "smarty"
+  password: !secret SSID_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Sauna Fallback Hotspot"
+    password: !secret Fallback_hotspot
+
+captive_portal:
+
+# i2c config
+i2c:
+  sda: 21
+  scl: 22
+  scan: True
+  id: bus_a
+
+font:
+  - file: "gfonts://Roboto"
+    id: my_font
+    size: 20
+
+
+# Thermometer - sauna floor
+# dallas:
+#   - pin: GPIO23
+#
+# sensor:
+#   - platform: dallas
+#     index: 0
+#     name: "Teplomer"
+
+# HTU21D thermometer and humidity
+
+sensor:
+  - platform: htu21d
+    i2c_id: bus_a
+    address: 0x40
+    temperature:
+      name: "Sauna Temperature"
+      id: out_sauna_temp
+    humidity:
+      name: "Sauna Humidity"
+      id: out_sauna_hum
+    update_interval: 60s
+
+display:
+  - platform: lcd_pcf8574
+    dimensions: 16x2
+    address: 0x27
+    lambda: |-
+      it.printf("Out: %.1fC %.1f%%", id(out_sauna_temp).state, id(out_sauna_hum).state);
+
+web_server:
+  port: 80
